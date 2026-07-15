@@ -674,9 +674,11 @@ function TeamStatsSection({home,away,iso,venue,odds}){
   const [openSl,setOpenSl]=useState(null);
   const L=D.ladder['2025']||{};
   const dt=new Date(iso);
-  const fxNight=parseInt(dt.toLocaleString('en-AU',{hour:'2-digit',hour12:false,timeZone:'Australia/Sydney'}))>=17?1:0;
-  const fxDow=dt.toLocaleString('en-AU',{weekday:'short',timeZone:'Australia/Sydney'});
-  const fxDowFull=dt.toLocaleString('en-AU',{weekday:'long',timeZone:'Australia/Sydney'});
+  // night/day + day-of-week are judged in the VENUE's local time (NZ grounds run 2hrs ahead of AEST)
+  const venTZ=({'Go Media':'Pacific/Auckland','FMG Waikato':'Pacific/Auckland'}[venue])||'Australia/Sydney';
+  const fxNight=parseInt(dt.toLocaleString('en-AU',{hour:'2-digit',hour12:false,timeZone:venTZ}))>=17?1:0;
+  const fxDow=dt.toLocaleString('en-AU',{weekday:'short',timeZone:venTZ});
+  const fxDowFull=dt.toLocaleString('en-AU',{weekday:'long',timeZone:venTZ});
   const openerMode=D.round===1;
   const homeAb=D.meta[home].ab, awayAb=D.meta[away].ab;
   const has=k=>fset.indexOf(k)>=0;
