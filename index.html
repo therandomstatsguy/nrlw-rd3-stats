@@ -7,6 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 :root{--bg0:#070b10;--bg1:#0d1117;--bg2:#141b24;--bg3:#1a2332;--acc:#00d4a0;--acc2:#00a67d;--accB:#00ffaa;--grn:#00ffaa;--ylw:#eab308;--red:#ef4444;--t1:#e8eaed;--t2:#8b95a5;--t3:#5c6878;--brd:#1e2a36;--brdA:rgba(0,212,160,0.3)}
@@ -112,6 +113,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg0);color:var(--
 @media(max-width:768px){.hdr{padding:10px 8px}.mr,.mh{grid-template-columns:1fr 28px 1fr;gap:2px}.mc{gap:1px}.mh{margin-bottom:2px}.mht{font-size:10px;letter-spacing:.3px}.mhv{font-size:8px}.pc{padding:4px 6px}.pi{gap:4px}.pn{min-width:16px;height:16px;font-size:8px;border-radius:3px}.pname{font-size:10px}.ppos{font-size:8px}.psr{min-width:36px}.psr-val{font-size:11px}.psr-lbl{font-size:7px}.mpb{font-size:7px;padding:1px 4px}.mp{padding:0}.bench-hdr{font-size:8px;padding:4px 0}.zdg{grid-template-columns:1fr}.gsel{gap:3px}.gbtn{padding:4px 2px;font-size:9px}.gmt{font-size:12px}.hdr-in{flex-direction:column;gap:8px}.gl-split{grid-template-columns:1fr}}
 @media(max-width:390px){.mr,.mh{grid-template-columns:1fr 22px 1fr;gap:1px}.pc{padding:3px 4px}.pi{gap:3px}.pn{min-width:14px;height:14px;font-size:7px}.pname{font-size:9px}.ppos{font-size:7px}.psr-val{font-size:9px}.psr-lbl{font-size:6px}.mpb{font-size:6px;padding:1px 3px}.mht{font-size:9px}.gbtn{padding:2px 4px;font-size:8px}}
 </style>
+
 <style>
 /* Game logs: columns size to their text (no truncation, incl. mobile); table scrolls horizontally when wider than its container */
 .gl-tbl{table-layout:auto;width:auto;min-width:100%}
@@ -352,7 +354,7 @@ function ScoreCard({val,label,color}){
     React.createElement('div',{className:'sc-v',style:{color:color||'#fff'}},val),
     React.createElement('div',{className:'sc-l'},label));
 }
-function PlayerModal({pl,nick,oppForPlayer,venue,round,odds,market0,atsN0,period0,cat0,onClose}){
+function PlayerModal({pl,nick,oppForPlayer,venue,round,odds,favNick,market0,atsN0,period0,cat0,onClose}){
   const ce=React.createElement, col=D.meta[nick].c, opp=oppForPlayer;
   const [market,setMarket]=useState(market0||'ats');
   const [atsN,setAtsN]=useState(atsN0||1);
@@ -375,7 +377,7 @@ function PlayerModal({pl,nick,oppForPlayer,venue,round,odds,market0,atsN0,period
     }
   }
   const L=D.ladder['2025']||{};
-  const status=(L[nick]||99)<=(L[opp]||99)?'F':'U';
+  const status=(favNick?nick===favNick:(L[nick]||99)<=(L[opp]||99))?'F':'U';
   const oppTop=((D.titleRank&&D.titleRank[opp])||L[opp]||99)<=6;   // opponent's current (last-round) rank
   // dynamic scorecards
   const baseSet=applyPeriod(own,period);
@@ -658,7 +660,7 @@ function Slider({opts,val,fmt,onChange,oddsFn,labelsFn}){const ce=React.createEl
     od.right?ce(OddsChip,{o:od.right,fs:9}):sp());}
 const TS_FACTORS=[{k:'all',l:'All'},{k:'han',l:'H/A/N'},{k:'h2h',l:'H2H'},{k:'venue',l:'Venue'},{k:'favund',l:'Fav/Und'},{k:'daynight',l:'Day/Night'},{k:'wet',l:'Wet'},{k:'rank',l:'Rank'},{k:'turn',l:'Turnaround'},{k:'dow',l:'Day'}];
 const TS_TIME=[{k:'match',l:'Match'},{k:'h1',l:'1st Half'},{k:'h2',l:'2nd Half'}];
-function TeamStatsSection({home,away,iso,venue,odds}){
+function TeamStatsSection({home,away,iso,venue,odds,favNick}){
   const ce=React.createElement;
   const O=odds;
   const [fset,setFset]=useState(['all']);
@@ -721,7 +723,7 @@ function TeamStatsSection({home,away,iso,venue,odds}){
     if(has('han'))g=g.filter(r=>r.han===(isHome?'H':'A'));
     if(has('h2h'))g=g.filter(r=>r.o===other);
     if(has('venue'))g=g.filter(r=>r.ven===venue);
-    if(has('favund')){const st=(L[team]||99)<(L[other]||99)?'F':'U';g=g.filter(r=>r.fav===st);}
+    if(has('favund')){const st=(favNick?team===favNick:(L[team]||99)<(L[other]||99))?'F':'U';g=g.filter(r=>r.fav===st);}
     if(has('daynight'))g=g.filter(r=>r.night===fxNight);
     if(has('wet'))g=g.filter(r=>r.wet===1);
     if(has('rank')){const top=((D.titleRank&&D.titleRank[other])||L[other]||99)<=6;g=g.filter(r=>top?(r.otop===1):(r.orank>0&&r.otop===0));}
@@ -768,7 +770,7 @@ function TeamStatsSection({home,away,iso,venue,odds}){
     if(has('dow'))adjs.push(fxDowFull);
     if(has('h2h'))sufs.push('vs '+other);
     if(has('venue'))sufs.push('at '+vShort(venue));
-    if(has('favund'))sufs.push('as '+((L[team]||99)<(L[other]||99)?'favourite':'underdog'));
+    if(has('favund'))sufs.push('as '+((favNick?team===favNick:(L[team]||99)<(L[other]||99))?'favourite':'underdog'));
     if(has('wet'))sufs.push('in the wet');
     if(has('rank'))sufs.push('vs '+(((D.titleRank&&D.titleRank[other])||L[other]||99)<=6?'Top 6':'Bottom 6')+' teams');
     if(has('turn')){if(openerMode)noun='Season Openers';else sufs.push('off a short turnaround');}
@@ -1015,6 +1017,10 @@ function App(){
   const fx=D.fixtures[gi];
   const home=fx.home, away=fx.away;
   const oddsO=(D.odds&&D.odds[gi])||null;
+  // favourite team for THIS fixture: from the game odds (h2h), else current ladder position
+  const favNick=(oddsO&&oddsO.M&&oddsO.M.h2h&&oddsO.M.h2h.home&&oddsO.M.h2h.away)
+    ? (oddsO.M.h2h.home.p<oddsO.M.h2h.away.p?home:away)
+    : (((D.titleRank&&D.titleRank[home])||99)<=((D.titleRank&&D.titleRank[away])||99)?home:away);
   const playerStreaks=buildPlayerStreaks(home,away,fx.venue);
   const teamStreaks=buildTeamStreaks(home,away,fx.venue,oddsO);
   const ctxHome={cat,period,market,atsN,opp:away,venue:fx.venue};
@@ -1104,10 +1110,10 @@ function App(){
         React.createElement('div',{className:'fc'},React.createElement(TeamStreaksSection,{list:teamStreaks,onTeam:(it)=>setTsModal(it)}))),
 
       tab==='team'&&React.createElement(Section,{title:'Team Markets'},
-        React.createElement(TeamStatsSection,{key:gi,home:home,away:away,iso:fx.iso,venue:fx.venue,odds:oddsO})),
+        React.createElement(TeamStatsSection,{key:gi,home:home,away:away,iso:fx.iso,venue:fx.venue,odds:oddsO,favNick:favNick})),
 
       React.createElement('div',{className:'ftr'},'RSG NRLW Try Scorer Dashboard · Try timing 2018–2025 · Zones 2025 · Built from NRL.com match data.'),
-      modal&&React.createElement(PlayerModal,{pl:modal.pl,nick:modal.nick,oppForPlayer:modal.opp,venue:fx.venue,round:D.round,odds:oddsO,market0:market,atsN0:atsN,period0:(modal.period0||period),cat0:(modal.cat0||cat),onClose:()=>setModal(null)}),
+      modal&&React.createElement(PlayerModal,{pl:modal.pl,nick:modal.nick,oppForPlayer:modal.opp,venue:fx.venue,round:D.round,odds:oddsO,favNick:favNick,market0:market,atsN0:atsN,period0:(modal.period0||period),cat0:(modal.cat0||cat),onClose:()=>setModal(null)}),
       tsModal&&React.createElement(TeamStreakModal,{item:tsModal,onClose:()=>setTsModal(null)})
     )));
 }
